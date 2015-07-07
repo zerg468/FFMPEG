@@ -17,8 +17,8 @@ extern "C"{
 #pragma comment(lib,"avutil.lib")
 
 
-const char *szFilePath = "C://BlackBerry.mov"; // 읽을 파일 이름
-const char *file_out = "C://example2.yuv"; // 디코딩해서 출력할 파일 이름 (yuv만 가능함)
+const char *szFilePath = "E://BlackBerry.mov"; // 읽을 파일 이름
+const char *file_out = "E://example2.yuv"; // 디코딩해서 출력할 파일 이름 (yuv만 가능함)
 AVFormatContext   *pFormatCtx = NULL; // 파일헤더 읽어오기
 
 AVCodec *codecEncode, *codecDecode;
@@ -127,7 +127,7 @@ int main(void)
 	buffer = (uint8_t *)av_malloc(numBytes*sizeof(uint8_t));
 
 	// Read frames and save first five frames to disk
-	int frame = 0,len = 0;
+	int frame = 0, len = 0;
 
 
 	// initialize SWS context for software scaling
@@ -142,13 +142,13 @@ int main(void)
 		NULL,
 		NULL
 		);
-	
+
 
 	//av_read_frame 함수는 파일에서 packet 에 저장하는 함수
 	while (av_read_frame(pFormatCtx, &packet) >= 0) {
 
 		fflush(stdout);
-	
+
 		// Decode video frame (packet을 프레임으로 변환시킨다.)
 		avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &packet);
 
@@ -157,7 +157,7 @@ int main(void)
 
 			//픽셀 데이터를 buffer로 전송한다.
 			//avpicture_layout((AVPicture*)pFrame, pCodecCtx->pix_fmt, pCodecCtx->width, pCodecCtx->height, buffer, numBytes);
-			
+
 			//파일 저장
 			//fwrite(buffer, numBytes, 1, f);
 
@@ -187,14 +187,18 @@ int main(void)
 
 			pictureEncoded->pts = frame;
 			pFrame->pts = frame;
-			
+
 			//encoderOutSize = avcodec_encode_video(ctxEncode, encoderOut, clip_height*clip_width*3, pFrame);
 
-			encoderOutSize = avcodec_encode_video(ctxEncode, encoderOut, clip_height*clip_width * 3, pictureEncoded);
+			//encoderOutSize = avcodec_encode_video(ctxEncode, encoderOut, clip_height*clip_width * 3, pictureEncoded);
 			
-			avpkt.size = encoderOutSize;
-			avpkt.data = encoderOut;
+			//avpkt.size = encoderOutSize;
+			//avpkt.data = encoderOut;
 
+
+			avcodec_encode_video2(ctxEncode, &avpkt, pictureEncoded, &got_picture);
+
+			
 			len = avcodec_decode_video2(ctxDecode, pictureDecoded, &got_picture, &avpkt);
 
 			if (got_picture){
@@ -207,20 +211,20 @@ int main(void)
 				//파일 저장
 				fwrite(decodedOut, pic_size, 1, f);
 
-				
+
 			}
 		}
-		
-			
-			
-	
+
+
+
+
 		// Free the packet that was allocated by av_read_frame
 		av_free_packet(&packet);
 		av_free_packet(&avpkt);
 	}
 
 	printf("디코딩 된 총 frame의 갯수 : %3d\n", frame);
-	
+
 	// 파일 종료
 	fclose(f);
 	fclose(f_in);
@@ -268,12 +272,12 @@ void decode_init()
 
 
 
-	if (avcodec_open2(ctxDecode, codecDecode,NULL) < 0) {
+	if (avcodec_open2(ctxDecode, codecDecode, NULL) < 0) {
 		fprintf(stderr, "could not open codec\n");
 		exit(1);
 	}
 
-	pictureDecoded = avcodec_alloc_frame();
+	pictureDecoded = av_frame_alloc();
 
 	pic_size = avpicture_get_size(PIX_FMT_YUV420P, clip_width, clip_height);
 
@@ -308,7 +312,7 @@ void encode_init()
 	ctxEncode->refs = 3; // refs=3
 	ctxEncode->trellis = 1; // trellis=1
 	ctxEncode->flags2 |= CODEC_FLAG2_FAST; // flags2=+bpyramid+mixed_refs+wpred+dct8x8+fastpskip
-	ctxEncode->bit_rate = 1000*1024;
+	ctxEncode->bit_rate = 1000 * 1024;
 	ctxEncode->width = clip_width;
 	ctxEncode->height = clip_height;
 	ctxEncode->time_base.num = 1;
@@ -322,16 +326,16 @@ void encode_init()
 	ctxEncode->profile = FF_PROFILE_H264_HIGH_422;
 
 	/* open codec for encoder*/
-	if (avcodec_open2(ctxEncode, codecEncode,NULL) < 0) {
+	if (avcodec_open2(ctxEncode, codecEncode, NULL) < 0) {
 		printf("could not open codec\n");
 		exit(1);
 	}
 
-	pictureEncoded = avcodec_alloc_frame();
+	pictureEncoded = av_frame_alloc();
 
 
 
-	encoderOut = (uint8_t*)malloc(clip_height*clip_width*3);
+	encoderOut = (uint8_t*)malloc(clip_height*clip_width * 3);
 	picEncodeBuf = (uint8_t*)malloc(3 * pic_size / 2); // size for YUV 420p
 
 	pictureEncoded->format = PIX_FMT_YUV420P;
@@ -350,10 +354,10 @@ void encode_init()
 void get_infor()
 {
 
-	int ret=0;
+	int ret = 0;
 
-	
-	
+
+
 	// Open video file
 	//첫번째 인자에서 I/O 및 Muxing/DeMuxing에 관한 정보 저장, 두번째 input source(파일위치), UDP 스트리밍 Url
 	ret = avformat_open_input(&pFormatCtx, szFilePath, NULL, NULL);
