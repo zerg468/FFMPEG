@@ -192,7 +192,7 @@ int open_output_file()
 
 int encode_write_frame(AVFrame *frame, int streamIdx, int *gotFrame)
 {
-	int ret;
+	int ret = -1;
 	int gotFrame_local;
 	AVPacket enc_pkt;
 
@@ -223,6 +223,8 @@ int encode_write_frame(AVFrame *frame, int streamIdx, int *gotFrame)
 		ret = av_interleaved_write_frame(outFmtCtx, &enc_pkt);
 		return ret;
 	}
+	
+	return ret;
 }
 
 int flush_encoder(unsigned int streamIdx)
