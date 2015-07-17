@@ -18,8 +18,8 @@ extern "C"{
 
 
 //const char *szFilePath = "E://foreman.yuv"; // 읽을 파일 이름
-const char *szFilePath = "E://yuvfile_10.mov"; // 읽을 파일 이름
-const char *file_out = "E://yuv_change3.mp4"; // 디코딩해서 출력할 파일 이름 (yuv만 가능함)
+const char *szFilePath = "E://yuvfile_5.mov"; // 읽을 파일 이름
+const char *file_out = "E://yuv_change.mp4"; // 디코딩해서 출력할 파일 이름 (yuv만 가능함)
 
 AVFormatContext   *pFormatCtx = NULL; // 파일헤더 읽어오기
 
@@ -158,17 +158,11 @@ int main(void)
 	// Allocate video frame
 	pFrame = av_frame_alloc();
 
-	pFrame->format = PIX_FMT_YUV420P;
-
-
-	// Determine required buffer size and allocate buffer , 변환시에 Raw Data를 저장할 장소
-	numBytes = avpicture_get_size(PIX_FMT_YUV420P, clip_width, clip_height);
-	buffer = (uint8_t *)av_malloc(numBytes*sizeof(uint8_t)*3);
 
 	// initialize SWS context for software scaling
-	sws_ctx = sws_getContext(pFormatCtx->streams[0]->codec->width,
-		pFormatCtx->streams[0]->codec->height,
-		pFormatCtx->streams[0]->codec->pix_fmt,
+	sws_ctx = sws_getContext(pCodecCtx->width,
+		pCodecCtx->height,
+		pCodecCtx->pix_fmt,
 		clip_width,
 		clip_height,
 		PIX_FMT_YUV420P,
@@ -206,8 +200,10 @@ int main(void)
 
 				frame++;
 
-				sws_scale(sws_ctx, (const uint8_t * const *)pFrame->data,pFrame->linesize, 0, clip_height,pictureEncoded->data, pictureEncoded->linesize);
+				sws_scale(sws_ctx, (const uint8_t * const *)pFrame->data,pFrame->linesize, 0, pCodecCtx->height,pictureEncoded->data, pictureEncoded->linesize);
 				
+				
+
 				//pictureEncoded->data[1] = pictureEncoded->data[0] + pic_size;
 				//pictureEncoded->data[2] = pictureEncoded->data[1] + pic_size / 4;
 
@@ -228,14 +224,8 @@ int main(void)
 
 				//av_packet_rescale_ts(&avpkt, pFormatCtx->streams[0]->time_base, video_st->time_base);
 
-					av_packet_rescale_ts(&avpkt, ctxEncode->time_base, video_st->time_base);
+				av_packet_rescale_ts(&avpkt, ctxEncode->time_base, video_st->time_base);
 
-
-					///* copy packet */
-					//avpkt.pts = av_rescale_q_rnd(avpkt.pts, pFormatCtx->streams[0]->time_base, video_st->time_base, (AVRounding)(AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
-					//avpkt.dts = av_rescale_q_rnd(avpkt.dts, pFormatCtx->streams[0]->time_base, video_st->time_base, (AVRounding)(AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
-					//avpkt.duration = av_rescale_q(avpkt.duration, pFormatCtx->streams[0]->time_base, video_st->time_base);
-					//avpkt.pos = -1;
 				
 				ret = av_interleaved_write_frame(ofmt_ctx, &avpkt);
 
@@ -420,7 +410,7 @@ void encode_init()
 	ctxEncode->refs = 3; // refs=3
 	ctxEncode->trellis = 1; // trellis=1
 	ctxEncode->flags2 |= CODEC_FLAG2_FAST; // flags2=+bpyramid+mixed_refs+wpred+dct8x8+fastpskip
-	ctxEncode->bit_rate = 8000 * 1024;
+	ctxEncode->bit_rate = 272457 * 1024;
 
 	ctxEncode->width = clip_width;
 	ctxEncode->height = clip_height;
