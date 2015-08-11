@@ -1,10 +1,8 @@
 extern "C"{
-
 #include <libavformat/avformat.h> 
 #include <libavcodec/avcodec.h>
 #include <libswscale/swscale.h>
-#include <libavutil\opt.h>
-
+#include <libavutil/opt.h>
 };
 
 #pragma comment(lib,"avformat.lib")
@@ -12,9 +10,9 @@ extern "C"{
 #pragma comment(lib,"swscale.lib")
 #pragma comment(lib,"avutil.lib")
 
-
 int clip_width = 0, clip_height = 0; // resolution size
 
+// Function Declaration
 int get_header_input(AVFormatContext **pFormatCtx,char *FilePath); //get input_file header information function, return is videostream
 
 void encode_init(AVFrame **pictureEncoded,AVCodecContext **ctxEncode); // encode init function
@@ -26,11 +24,13 @@ AVStream *add_stream(AVFormatContext *oc, enum AVCodecID codec_id, int videoStre
 
 void open_video(AVFormatContext *oc, AVStream *st, AVCodec *codecDecode); // codec open, frame set
 
-
+void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx, 
+					AVCodecContext *ctxDecode, AVCodecContext *ctxEncode, double time);// show encoder information
 
 int main(void)
 {
-	char *file_input = "E://yuvfile_5.mov", *file_out = "E://yuv_change.mp4";
+	char *file_input = "E:/ffmpeg/sample.mov";
+	char *file_out = "E:/ffmpeg/sample.mp4";
 	int frame = 0, ret = 0, got_picture = 0, frameFinished = 0, videoStream = 0;
 	struct SwsContext *sws_ctx = NULL;
 	AVStream *video_st = NULL;
@@ -38,7 +38,10 @@ int main(void)
 	AVCodecContext    *pCodecCtx = NULL, *ctxEncode = NULL;
 	AVFrame           *pFrame = NULL, *pictureEncoded = NULL;
 	AVPacket          input_pkt, output_pkt;
+	clock_t start_t, end_t;
+	double time;
 	
+	start_t = clock();
 	// Register all formats and codecs
 	av_register_all();
 
@@ -90,31 +93,33 @@ int main(void)
 
 					printf("frame : %d\n", frame);
 
-				if (ret < 0) {
-					fprintf(stderr, "Error muxing packet\n");
-					break;
-				}
-
+					if (ret < 0) {
+						fprintf(stderr, "Error muxing packet\n");
+						break;
+					}
 				}
 			}
 
 			av_free_packet(&input_pkt);
 			av_free_packet(&output_pkt);
-	
 		}
-
 	}
+
+	end_t = clock() ;
+	time = ((double)(end_t - start_t)) / CLOCKS_PER_SEC;
+	display_info(file_input, file_out, pFormatCtx, pCodecCtx, ctxEncode, time);
+	
 
 	/* Write the trailer, if any. The trailer must be written before you
 	* close the CodecContexts open when you wrote the header; otherwise
 	* av_write_trailer() may try to use memory that was freed on
 	* av_codec_close(). */
-
 	av_write_trailer(ofmt_ctx);
 
 	// Free the YUV frame
 	av_frame_free(&pFrame);
 	av_frame_free(&pictureEncoded);
+
 	// Close the codecs
 	avcodec_close(pCodecCtx);
 
@@ -250,6 +255,7 @@ AVStream *add_stream(AVFormatContext *oc, enum AVCodecID codec_id, int videoStre
 	return st;
 
 }
+
 void open_video(AVFormatContext *oc, AVStream *st, AVCodec *codecDecode)
 {
 	int ret = 0;
@@ -395,3 +401,79 @@ int get_header_input(AVFormatContext **pFormatCtx, char *FilePath)
 	return videoStream;
 }
 
+void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx, 
+				  AVCodecContext *ctxDecode, AVCodecContext *ctxEncode, double time)
+{
+	char *string = NULL;
+	int hours, mins, secs, us;
+	int64_t duration = pFmtCtx->duration + 5000;
+	secs = duration / AV_TIME_BASE;
+	us = duration % AV_TIME_BASE;
+	mins = secs / 60;
+	secs %= 60;
+	hours = mins / 60;
+	mins %= 60;
+	
+	printf("\n\n################################\n");
+	printf("#\tFiles\n");
+	printf("################################\n");
+
+	printf("Input File\t = %s\n", file_input);
+	printf("Frame Rate\t = %d\n", ctxEncode->time_base.den);
+	printf("Source Width\t = %d\n", ctxDecode->width);
+	printf("Source Height\t = %d\n", ctxDecode->height);
+	printf("Source Duration\t = %02d:%02d:%02d.%02d\n", hours, mins, secs, (100 * us) / AV_TIME_BASE);
+	printf("Source Bitrate\t = %d kb/s\n\n", pFmtCtx->bit_rate/1000);
+	printf("Frame Encoded\t = %d\n\n", ctxDecode->frame_number);
+
+	printf("Output File\t = %s\n", file_output);
+	printf("Output Width\t = %d\n", ctxEncode->width);
+	printf("Output Height\t = %d\n", ctxEncode->height);
+	
+
+	printf("\n\n################################\n");
+	printf("#\Encoder Control\n");
+	printf("################################\n");
+
+	string = (ctxEncode->profile == FF_PROFILE_H264_BASELINE) ? "Baseline" :
+		(ctxEncode->profile == FF_PROFILE_H264_MAIN) ? "Main" :
+		(ctxEncode->profile == FF_PROFILE_H264_EXTENDED) ? "Extended" :
+		(ctxEncode->profile == FF_PROFILE_H264_HIGH) ? "High" :
+		(ctxEncode->profile == FF_PROFILE_H264_HIGH_10) ? "High10" :
+		(ctxEncode->profile == FF_PROFILE_H264_HIGH_422) ? "High422" :
+		(ctxEncode->profile == FF_PROFILE_H264_HIGH_444) ? "High444" : "Unknown";
+	printf("profile\t\t\t = %s\n", string);
+	printf("level\t\t\t = %d\n", ctxEncode->level);
+
+	printf("bit rate\t\t = %d\n", ctxEncode->bit_rate);
+	printf("bit rate tolerance\t = %d\n", ctxEncode->bit_rate_tolerance);
+	printf("GOP size\t\t = %d\n", ctxEncode->gop_size);
+	printf("minimum GOP size\t = %d\n", ctxEncode->keyint_min);
+	string = (ctxEncode->pix_fmt == AV_PIX_FMT_YUV420P) ? "YUV420" :
+		(ctxEncode->pix_fmt == AV_PIX_FMT_YUV422P) ? "YUV422" :
+		(ctxEncode->pix_fmt == AV_PIX_FMT_YUV444P) ? "YUV444" : "Unknown";
+	printf("pixel format\t\t = %s\n", string);
+	printf("ME method\t\t = %d\n", ctxEncode->me_method);
+	printf("ME range\t\t = %d\n", ctxEncode->me_range);
+	printf("maximum B-frame\t\t = %d\n", ctxEncode->max_b_frames);
+	printf("luminance masking\t = %.2f\n", ctxEncode->lumi_masking);
+	printf("temporal_cplx_masking\t = %.2f\n", ctxEncode->temporal_cplx_masking);
+	printf("spatial_cplx_masking\t = %.2f\n", ctxEncode->spatial_cplx_masking);
+	printf("p_masking\t\t = %.2f\n", ctxEncode->p_masking);
+	printf("refs\t\t\t = %d\n", ctxEncode->refs);
+	printf("q compress\t\t = %.2f\n", ctxEncode->qcompress);
+	printf("q blur\t\t\t = %.2f\n", ctxEncode->qblur);
+	printf("q min\t\t\t = %d\n", ctxEncode->qmin);
+	printf("q max\t\t\t = %d\n", ctxEncode->qmax);
+	printf("max_qdiff\t\t = %d\n", ctxEncode->max_qdiff);
+	printf("trellis qunatization\t = %d\n", ctxEncode->trellis);
+	printf("DCT algorithm\t\t = %d\n", ctxEncode->dct_algo);
+	printf("IDCT algorithm\t\t = %d\n", ctxEncode->idct_algo);
+
+	printf("\n\n################################\n");
+	printf("#\Result\n");
+	printf("################################\n");
+
+	printf("Encoding Time %.2f second\n", time);
+	printf("Total Bits %f\n");
+}
