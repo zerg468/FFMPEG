@@ -109,7 +109,6 @@ int main(void)
 	time = ((double)(end_t - start_t)) / CLOCKS_PER_SEC;
 	display_info(file_input, file_out, pFormatCtx, pCodecCtx, ctxEncode, time);
 	
-
 	/* Write the trailer, if any. The trailer must be written before you
 	* close the CodecContexts open when you wrote the header; otherwise
 	* av_write_trailer() may try to use memory that was freed on
@@ -128,7 +127,6 @@ int main(void)
 	avcodec_close(ctxEncode);
 
 	return 0;
-
 }
 
 AVStream *output_set(AVFormatContext **ofmt_ctx, char *file_out, int videoStream){
@@ -475,5 +473,4 @@ void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx,
 	printf("################################\n");
 
 	printf("Encoding Time %.2f second\n", time);
-	printf("Total Bits %f\n");
 }
