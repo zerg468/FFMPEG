@@ -89,9 +89,18 @@ int main(void)
 
 					av_packet_rescale_ts(&output_pkt, ctxEncode->time_base, video_st->time_base);
 
-					ret = av_interleaved_write_frame(ofmt_ctx, &output_pkt);
+					frame_size = output_pkt.size / 8;
+					bitrate = (frame_size * 8) / av_q2d(ctxEncode->time_base) / 1000.0;
+					printf("frame= %5d   size= %6d Byte   type= %c\n", 
+						frame, frame_size, ctxEncode->coded_frame ? av_get_picture_type_char(ctxEncode->coded_frame->pict_type) : 'I');
+					//if (ctxEncode->coded_frame && (ctxEncode->flags&CODEC_FLAG_PSNR)){
+					//	//printf("PSNR= %6.2f \n", psnr(ctxEncode->coded_frame->error[0] / (ctxEncode->width * ctxEncode->height * 255.0 * 255.0)));
+					//	printf("ctxEncode->coded_frame->error[0] : %d\t", ctxEncode->coded_frame->error[0]);
+					//	printf("ctxEncode->error[0] : %d\n", ctxEncode->error[0]);
+					//}
 
-					printf("frame : %d\n", frame);
+
+					ret = av_interleaved_write_frame(ofmt_ctx, &output_pkt);
 
 					if (ret < 0) {
 						fprintf(stderr, "Error muxing packet\n");
@@ -315,6 +324,7 @@ void encode_init(AVFrame **pictureEncoded,AVCodecContext **ctxEncode)
 
 	(*ctxEncode)->coder_type = AVMEDIA_TYPE_VIDEO; // codec_type : VIDEO
 
+	(*ctxEncode)->flags |= CODEC_FLAG_PSNR;
 	(*ctxEncode)->flags |= CODEC_FLAG_LOOP_FILTER; // flags=+loop filter
 
 	(*ctxEncode)->time_base.num = 1; //fps
@@ -402,35 +412,49 @@ int get_header_input(AVFormatContext **pFormatCtx, char *FilePath)
 void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx, 
 				  AVCodecContext *ctxDecode, AVCodecContext *ctxEncode, double time)
 {
+	int in_size = 0, out_size = 0;
+	int bitrate = 0;
 	char *string = NULL;
 	int hours, mins, secs, us;
 	int64_t duration = pFmtCtx->duration + 5000;
+	
 	secs = duration / AV_TIME_BASE;
 	us = duration % AV_TIME_BASE;
 	mins = secs / 60;
 	secs %= 60;
 	hours = mins / 60;
 	mins %= 60;
-	
+
+	in_size = avio_size(pFmtCtx->pb);
+	if (in_size <= 0) // FIXME improve avio_size() so it works with non seekable output too
+		in_size = avio_tell(pFmtCtx->pb);
+
+	out_size = avio_size(ofmt_ctx->pb);
+	if (out_size <= 0)
+		out_size = avio_tell(ofmt_ctx->pb);
+
 	printf("\n\n################################\n");
-	printf("#\tFiles\n");
+	printf("#\t Files\n");
 	printf("################################\n");
 
 	printf("Input File\t = %s\n", file_input);
+	printf("Input File Size  = %dkB\n", in_size / 1024);
 	printf("Frame Rate\t = %d\n", ctxEncode->time_base.den);
 	printf("Source Width\t = %d\n", ctxDecode->width);
 	printf("Source Height\t = %d\n", ctxDecode->height);
 	printf("Source Duration\t = %02d:%02d:%02d.%02d\n", hours, mins, secs, (100 * us) / AV_TIME_BASE);
-	printf("Source Bitrate\t = %d kb/s\n\n", pFmtCtx->bit_rate/1000);
+	printf("Source Bitrate\t = %d kbits/s\n\n", pFmtCtx->bit_rate / 1000);
+	
 	printf("Frame Encoded\t = %d\n\n", ctxDecode->frame_number);
 
 	printf("Output File\t = %s\n", file_output);
+	printf("Output File Size = %dkB\n", out_size / 1024);
 	printf("Output Width\t = %d\n", ctxEncode->width);
 	printf("Output Height\t = %d\n", ctxEncode->height);
 	
 
 	printf("\n\n################################\n");
-	printf("#\Encoder Control\n");
+	printf("#\t Encoder Control\n");
 	printf("################################\n");
 
 	string = (ctxEncode->profile == FF_PROFILE_H264_BASELINE) ? "Baseline" :
@@ -469,8 +493,12 @@ void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx,
 	printf("IDCT algorithm\t\t = %d\n", ctxEncode->idct_algo);
 
 	printf("\n\n################################\n");
-	printf("#\Result\n");
+	printf("#\t Result\n");
 	printf("################################\n");
 
 	printf("Encoding Time %.2f second\n", time);
+	printf("Input File Size\t = %dkB\n", in_size / 1024);
+	printf("Output File Size = %dkB\n", out_size / 1024);
+	printf("Compression \t= %.3f\n", out_size / (float)in_size);
+	printf("Output Bitrate\t = %d kbits/s\n\n", out_size / (duration / AV_TIME_BASE));
 }
