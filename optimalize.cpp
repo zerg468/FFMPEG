@@ -24,8 +24,8 @@ AVStream *add_stream(AVFormatContext *oc, enum AVCodecID codec_id, int videoStre
 
 void open_video(AVFormatContext *oc, AVStream *st, AVCodec *codecDecode); // codec open, frame set
 
-void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx, 
-					AVCodecContext *ctxDecode, AVCodecContext *ctxEncode, double time);// show encoder information
+void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx,
+	AVFormatContext *ofmt_ctx, AVCodecContext *ctxDecode, AVCodecContext *ctxEncode, double time);// show encoder information
 
 int main(void)
 {
@@ -409,8 +409,8 @@ int get_header_input(AVFormatContext **pFormatCtx, char *FilePath)
 	return videoStream;
 }
 
-void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx, 
-				  AVCodecContext *ctxDecode, AVCodecContext *ctxEncode, double time)
+void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx,
+	AVFormatContext *ofmt_ctx, AVCodecContext *ctxDecode, AVCodecContext *ctxEncode, double time)
 {
 	int in_size = 0, out_size = 0;
 	int bitrate = 0;
