@@ -25,14 +25,14 @@ AVStream *add_stream(AVFormatContext *oc, enum AVCodecID codec_id, int videoStre
 void open_video(AVFormatContext *oc, AVStream *st, AVCodec *codecDecode); // codec open, frame set
 
 void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx,
-	AVFormatContext *ofmt_ctx, AVCodecContext *ctxDecode, AVCodecContext *ctxEncode, double time);// show encoder information
+	AVFormatContext *ofmt_ctx, AVCodecContext *ctxDecode, AVCodecContext *ctxEncode, double time, int frame_num);// show encoder information
 
 int main(void)
 {
 	char *file_input = "E:/ffmpeg/sample.mov";
 	char *file_out = "E:/ffmpeg/sample.mp4";
 	int frame = 0, ret = 0, got_picture = 0, frameFinished = 0, videoStream = 0;
-	int frame_size = 0, bitrate = 0;
+	int frame_size = 0, bitrate = 0, frame_num = 1;
 	struct SwsContext *sws_ctx = NULL;
 	AVStream *video_st = NULL;
 	AVFormatContext    *pFormatCtx = NULL,*ofmt_ctx = NULL;
@@ -93,7 +93,7 @@ int main(void)
 					frame_size = output_pkt.size / 8;
 					bitrate = (frame_size * 8) / av_q2d(ctxEncode->time_base) / 1000.0;
 					printf("frame= %5d   size= %6d Byte   type= %c\n", 
-						frame, frame_size, ctxEncode->coded_frame ? av_get_picture_type_char(ctxEncode->coded_frame->pict_type) : 'I');
+						frame_num++, frame_size, ctxEncode->coded_frame ? av_get_picture_type_char(ctxEncode->coded_frame->pict_type) : 'I');
 					//if (ctxEncode->coded_frame && (ctxEncode->flags&CODEC_FLAG_PSNR)){
 					//	//printf("PSNR= %6.2f \n", psnr(ctxEncode->coded_frame->error[0] / (ctxEncode->width * ctxEncode->height * 255.0 * 255.0)));
 					//	printf("ctxEncode->coded_frame->error[0] : %d\t", ctxEncode->coded_frame->error[0]);
@@ -117,7 +117,7 @@ int main(void)
 
 	end_t = clock() ;
 	time = ((double)(end_t - start_t)) / CLOCKS_PER_SEC;
-	display_info(file_input, file_out, pFormatCtx, ofmt_ctx, pCodecCtx, ctxEncode, time);
+	display_info(file_input, file_out, pFormatCtx, ofmt_ctx, pCodecCtx, ctxEncode, time, frame_num);
 	
 	/* Write the trailer, if any. The trailer must be written before you
 	* close the CodecContexts open when you wrote the header; otherwise
@@ -411,7 +411,7 @@ int get_header_input(AVFormatContext **pFormatCtx, char *FilePath)
 }
 
 void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx,
-	AVFormatContext *ofmt_ctx, AVCodecContext *ctxDecode, AVCodecContext *ctxEncode, double time)
+	AVFormatContext *ofmt_ctx, AVCodecContext *ctxDecode, AVCodecContext *ctxEncode, double time, int frame_num)
 {
 	int in_size = 0, out_size = 0;
 	int bitrate = 0;
@@ -446,7 +446,7 @@ void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx,
 	printf("Source Duration\t = %02d:%02d:%02d.%02d\n", hours, mins, secs, (100 * us) / AV_TIME_BASE);
 	printf("Source Bitrate\t = %d kbits/s\n\n", pFmtCtx->bit_rate / 1000);
 	
-	printf("Frame Encoded\t = %d\n\n", ctxDecode->frame_number);
+	printf("Frame Encoded\t = %d\n\n", frame_num);
 
 	printf("Output File\t = %s\n", file_output);
 	printf("Output File Size = %dkB\n", out_size / 1000);
