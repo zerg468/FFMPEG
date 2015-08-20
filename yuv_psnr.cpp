@@ -463,7 +463,10 @@ void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx,
 	char *string = NULL;
 	int hours, mins, secs, us;
 	int64_t duration = pFmtCtx->duration + 5000;
-
+	
+	if (duration < 0)
+	duration = (frame_num * AV_TIME_BASE) / ctxEncode->time_base.den;
+	
 	secs = duration / AV_TIME_BASE;
 	us = duration % AV_TIME_BASE;
 	mins = secs / 60;
@@ -546,5 +549,5 @@ void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx,
 	printf("Input File Size\t = %dkB\n", in_size / 1000);
 	printf("Output File Size = %dkB\n", out_size / 1000);
 	printf("Compression \t = %.3f\n", out_size / (float)in_size);
-	printf("Output Bitrate\t = %d kbits/s\n\n", (out_size * 8) / (duration / AV_TIME_BASE) / 1000);
+	printf("Output Bitrate\t = %.0f kbits/s\n\n", ((out_size * 8) / 1000) / ((float)duration / AV_TIME_BASE));
 }
