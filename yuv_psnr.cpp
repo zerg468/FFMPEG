@@ -32,7 +32,7 @@ int check_file(char *file_input);
 
 int main(void)
 {
-	char *file_input = "E://airpano.mp4";
+	char *file_input = "E://foreman.yuv";
 	char *file_out = "E://sample.mp4";
 	int frame = 0, ret = 0, got_picture = 0, frameFinished = 0, videoStream = 0,check_yuv=0;
 	int frame_size = 0, bitrate = 0, frame_num = 1;
@@ -344,6 +344,7 @@ void encode_init(AVFrame **pictureEncoded, AVCodecContext **ctxEncode)
 
 	(*ctxEncode)->coder_type = AVMEDIA_TYPE_VIDEO; // codec_type : VIDEO
 
+	(*ctxEncode)->flags |= CODEC_FLAG_PSNR;
 	(*ctxEncode)->flags |= CODEC_FLAG_LOOP_FILTER; // flags=+loop filter
 
 	(*ctxEncode)->profile = FF_PROFILE_H264_HIGH_422; //high profile
@@ -369,6 +370,8 @@ void encode_init(AVFrame **pictureEncoded, AVCodecContext **ctxEncode)
 
 	(*ctxEncode)->me_range = 16; // motion estimation search range
 	(*ctxEncode)->me_method = ME_FULL; //motion estimation algorithm
+
+	(*ctxEncode)->max_b_frames = 0;
 
 	/* open codec for encoder*/
 	if (avcodec_open2((*ctxEncode), codecEncode, NULL) < 0) {
