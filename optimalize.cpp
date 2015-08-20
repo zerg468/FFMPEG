@@ -32,6 +32,7 @@ int main(void)
 	char *file_input = "E:/ffmpeg/sample.mov";
 	char *file_out = "E:/ffmpeg/sample.mp4";
 	int frame = 0, ret = 0, got_picture = 0, frameFinished = 0, videoStream = 0;
+	int frame_size = 0, bitrate = 0;
 	struct SwsContext *sws_ctx = NULL;
 	AVStream *video_st = NULL;
 	AVFormatContext    *pFormatCtx = NULL,*ofmt_ctx = NULL;
@@ -116,7 +117,7 @@ int main(void)
 
 	end_t = clock() ;
 	time = ((double)(end_t - start_t)) / CLOCKS_PER_SEC;
-	display_info(file_input, file_out, pFormatCtx, pCodecCtx, ctxEncode, time);
+	display_info(file_input, file_out, pFormatCtx, ofmt_ctx, pCodecCtx, ctxEncode, time);
 	
 	/* Write the trailer, if any. The trailer must be written before you
 	* close the CodecContexts open when you wrote the header; otherwise
@@ -438,7 +439,7 @@ void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx,
 	printf("################################\n");
 
 	printf("Input File\t = %s\n", file_input);
-	printf("Input File Size  = %dkB\n", in_size / 1024);
+	printf("Input File Size  = %dkB\n", in_size / 1000);
 	printf("Frame Rate\t = %d\n", ctxEncode->time_base.den);
 	printf("Source Width\t = %d\n", ctxDecode->width);
 	printf("Source Height\t = %d\n", ctxDecode->height);
@@ -448,7 +449,7 @@ void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx,
 	printf("Frame Encoded\t = %d\n\n", ctxDecode->frame_number);
 
 	printf("Output File\t = %s\n", file_output);
-	printf("Output File Size = %dkB\n", out_size / 1024);
+	printf("Output File Size = %dkB\n", out_size / 1000);
 	printf("Output Width\t = %d\n", ctxEncode->width);
 	printf("Output Height\t = %d\n", ctxEncode->height);
 	
@@ -497,8 +498,8 @@ void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx,
 	printf("################################\n");
 
 	printf("Encoding Time %.2f second\n", time);
-	printf("Input File Size\t = %dkB\n", in_size / 1024);
-	printf("Output File Size = %dkB\n", out_size / 1024);
-	printf("Compression \t= %.3f\n", out_size / (float)in_size);
-	printf("Output Bitrate\t = %d kbits/s\n\n", out_size / (duration / AV_TIME_BASE));
+	printf("Input File Size\t = %dkB\n", in_size / 1000);
+	printf("Output File Size = %dkB\n", out_size / 1000);
+	printf("Compression \t = %.3f\n", out_size / (float)in_size);
+	printf("Output Bitrate\t = %d kbits/s\n\n", (out_size * 8 ) / (duration / AV_TIME_BASE) / 1000);
 }
