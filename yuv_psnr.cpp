@@ -35,7 +35,7 @@ int main(void)
 	char *file_input = "E://foreman.yuv";
 	char *file_out = "E://sample.mp4";
 	int frame = 0, ret = 0, got_picture = 0, frameFinished = 0, videoStream = 0,check_yuv=0;
-	int frame_size = 0, bitrate = 0, frame_num = 1;
+	int frame_size = 0, bitrate = 0, frame_num = 0;
 	struct SwsContext *sws_ctx = NULL;
 	AVStream *video_st = NULL;
 	AVFormatContext    *pFormatCtx = NULL, *ofmt_ctx = NULL;
@@ -98,7 +98,7 @@ int main(void)
 					frame_size = output_pkt.size / 8;
 					bitrate = (frame_size * 8) / av_q2d(ctxEncode->time_base) / 1000.0;
 					printf("frame= %5d   size= %6d Byte   type= %c\n",
-						frame_num++, frame_size, ctxEncode->coded_frame ? av_get_picture_type_char(ctxEncode->coded_frame->pict_type) : 'I');
+						++frame_num, frame_size, ctxEncode->coded_frame ? av_get_picture_type_char(ctxEncode->coded_frame->pict_type) : 'I');
 					//if (ctxEncode->coded_frame && (ctxEncode->flags&CODEC_FLAG_PSNR)){
 					//	//printf("PSNR= %6.2f \n", psnr(ctxEncode->coded_frame->error[0] / (ctxEncode->width * ctxEncode->height * 255.0 * 255.0)));
 					//	printf("ctxEncode->coded_frame->error[0] : %d\t", ctxEncode->coded_frame->error[0]);
@@ -549,5 +549,7 @@ void display_info(char *file_input, char *file_output, AVFormatContext *pFmtCtx,
 	printf("Input File Size\t = %dkB\n", in_size / 1000);
 	printf("Output File Size = %dkB\n", out_size / 1000);
 	printf("Compression \t = %.3f\n", out_size / (float)in_size);
-	printf("Output Bitrate\t = %.0f kbits/s\n\n", ((out_size * 8) / 1000) / ((float)duration / AV_TIME_BASE));
+	if (out_size > 124000000)
+		 printf("Output Bitrate\t = %.0f kbits/s\n\n", ((out_size / 1000) * 8 ) / (duration / AV_TIME_BASE / 1.0));
+	else printf("Output Bitrate\t = %.0f kbits/s\n\n", ((out_size * 8) / 1000) / (duration / AV_TIME_BASE / 1.0));
 }
