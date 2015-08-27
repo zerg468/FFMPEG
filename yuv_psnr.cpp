@@ -11,6 +11,7 @@ extern "C"{
 #pragma comment(lib,"avutil.lib")
 
 int clip_width = 0, clip_height = 0; // resolution size
+int frame_rate = 0;
 
 // Function Declaration
 int get_header_input(AVFormatContext **pFormatCtx, char *FilePath, int check_yuv); //get input_file header information function, return is videostream
@@ -322,6 +323,9 @@ void decode_init(int videoStream, AVCodecContext **pCodecCtx, AVFormatContext *p
 
 	clip_width = (*pCodecCtx)->width;
 	clip_height = (*pCodecCtx)->height;
+	
+	frame_rate = (*pCodecCtx)->framerate.num / (*pCodecCtx)->framerate.den;
+	if (!frame_rate) frame_rate = 30;
 
 }
 
@@ -351,7 +355,7 @@ void encode_init(AVFrame **pictureEncoded, AVCodecContext **ctxEncode)
 	(*ctxEncode)->level = 51;
 
 	(*ctxEncode)->time_base.num = 1; //framte rate  -- 30
-	(*ctxEncode)->time_base.den = 30;
+	(*ctxEncode)->time_base.den = frame_rate;
 
 	(*ctxEncode)->width = clip_width; //frame size
 	(*ctxEncode)->height = clip_height;
