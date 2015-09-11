@@ -32,7 +32,7 @@ int check_file(char *file_input);
 
 int main(void)
 {
-	char *file_input = "H://foreman.mp4";
+	char *file_input = "H://akiyo.mp4";
 	char *file_out = "H://sample.mp4";
 	int frame = 0, ret = 0, got_picture = 0, frameFinished = 0, videoStream = 0, check_yuv = 0;
 	int frame_size = 0, bitrate = 0, frame_num = 0;
@@ -82,10 +82,11 @@ int main(void)
 
 	double sum[50] = { 0 };
 
+	double total = 0;
 
 	while (av_read_frame(pFormatCtx, &input_pkt) >= 0) {
 	
-		
+		count = 0;
 		if (input_pkt.stream_index == AVMEDIA_TYPE_VIDEO){
 
 			avcodec_decode_video2(pCodecCtx, pFrame, &frameFinished, &input_pkt); 		// Decode video frame (input_pkt-> pFrame)
@@ -118,19 +119,23 @@ int main(void)
 						for (x = 0; x < clip_width; x++){
 							//  printf("(%d)(%d) : %d \n", x, y, pictureEncoded->data[0][y*pictureEncoded->linesize[0] + x]);
 							frame2[y][x] = pictureEncoded->data[0][y*pictureEncoded->linesize[0] + x];
-							sum[index] += abs(frame2[y][x] - frame1[y][x]);
+							if (abs(frame2[y][x] - frame1[y][x]) > 50){
+								sum[index] += abs(frame2[y][x] - frame1[y][x]);
+								count++;
+							}
 						}
 
 					}
 
-					printf("[%d] sum : %.2f \n ", index,sum[index] / 101376);
+						
+					if (count != 0){
+						printf("[%d] sum : %.2f \n ", index, sum[index] / clip_height/clip_width);
+						total += sum[index] / clip_height / clip_width;
+					}
+						
 					index++; 
 
-
-
 				}
-				
-				 
 
 				//sd = av_frame_get_side_data(pictureEncoded, AV_FRAME_DATA_MOTION_VECTORS);
 
@@ -170,7 +175,7 @@ int main(void)
 		}
 	}
 
-	double total = 0;
+
 	for (int i = 0; i < 44; i++){
 		total += sum[i]/ 101376;
 	}
