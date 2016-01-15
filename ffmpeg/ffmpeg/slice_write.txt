@@ -2,7 +2,6 @@
 		printf("%d hello\n", count++);
 		printf("hello\n");
 
-		
 static intptr_t x264_slice_write( x264_t *h )
 {
     int i_skip;
