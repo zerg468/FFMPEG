@@ -184,7 +184,7 @@ int main(void)
 	if (ret < 0)
 		av_log(NULL, AV_LOG_ERROR, "Error occurred \n");
 
-	system("pause");
+	system("pause"); 
 	return 0;
 }
 
