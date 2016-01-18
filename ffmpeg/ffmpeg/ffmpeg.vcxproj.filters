@@ -26,5 +26,8 @@
     <Text Include="x264_ratecontrol_start.txt">
       <Filter>Source Files</Filter>
     </Text>
+    <Text Include="Encoder_encode.txt">
+      <Filter>Source Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>
