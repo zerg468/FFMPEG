@@ -29,5 +29,8 @@
     <Text Include="Encoder_encode.txt">
       <Filter>Source Files</Filter>
     </Text>
+    <Text Include="test.txt">
+      <Filter>Source Files</Filter>
+    </Text>
   </ItemGroup>
 </Project>

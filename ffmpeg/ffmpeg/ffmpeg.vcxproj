@@ -107,6 +107,7 @@
   <ItemGroup>
     <Text Include="Encoder_encode.txt" />
     <Text Include="slice_write.txt" />
+    <Text Include="test.txt" />
     <Text Include="x264_ratecontrol_start.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

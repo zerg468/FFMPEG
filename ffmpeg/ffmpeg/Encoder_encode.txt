@@ -26,7 +26,8 @@ x264_encoder_encode	/* ------------------- Setup new frame from picture --------
 					/* ------------------- Get frame to be encoded ------------------------- */
 					/* 4: get picture to encode */
 						//fenc: frame being encoded
-						//frames.current : frame to be encoded
+						//frames.current : frame to be encoded (whose types have been decided)
+						//frames.current => fenc
 						h->fenc = x264_frame_shift( h->frames.current );
 
 					/* If applicable, wait for previous frame reconstruction to finish */
@@ -45,7 +46,8 @@ x264_encoder_encode	/* ------------------- Setup new frame from picture --------
 
 					/* ------------------- Setup frame context ----------------------------- */
 					/* 5: Init data dependent of frame type */
-						//Frame type: IDR, I, P, BREF, B에 따라 초기화
+//sh.i_type 결정			//Frame type: IDR, I, P, BREF, B에 따라 초기화
+						//fdec: frame being reconstructed
 						fenc => fdec
 
 					/* ------------------- Init                ----------------------------- */
@@ -54,9 +56,14 @@ x264_encoder_encode	/* ------------------- Setup new frame from picture --------
 
 					/* ---------------------- Write the bitstream -------------------------- */
 					/* Init bitstream context */
-					if( h->param.b_sliced_threads ) else
+					//Whether to use slice-based threading
+					if( h->param.b_sliced_threads ) 
+					else{	bs_init( &h->out.bs, h->out.p_bitstream, h->out.i_bitstream );
+							h->out.i_nal = 0;}
 
-					if( h->param.b_aud )??
+					//generate access unit delimiters
+					//엑세스 단위의 선두를 표시하는 개시부호
+					if( h->param.b_aud )
 
 					if( h->param.b_intra_refresh )
 						//I, P 일때 처리
@@ -65,6 +72,7 @@ x264_encoder_encode	/* ------------------- Setup new frame from picture --------
 						/* Write SPS and PPS */
 						if( h->param.b_repeat_headers )
 							/* generate sequence parameters */
+							/* SPS: 그 영상의 프로파일과 레벨 등 sequence 전체의 부호화에 관한 정보를 포함하는 헤더 */
 							 x264_nal_start( h, NAL_SPS, NAL_PRIORITY_HIGHEST );
 							x264_sps_write( &h->out.bs, h->sps );
 							if( x264_nal_end( h ) )
@@ -73,6 +81,8 @@ x264_encoder_encode	/* ------------------- Setup new frame from picture --------
 							/* Pad AUD/SPS to 256 bytes like Panasonic */
 
 							/* generate picture parameters */
+							/* PPS: 전체 picture의 부호화 모드를 표시하는 헤더 */
+							
 							x264_nal_start( h, NAL_PPS, NAL_PRIORITY_HIGHEST );
 							x264_pps_write( &h->out.bs, h->sps, h->pps );
 							if( x264_nal_end( h ) )
@@ -81,6 +91,7 @@ x264_encoder_encode	/* ------------------- Setup new frame from picture --------
 							/* when frame threading is used, buffering period sei is written in x264_encoder_frame_end */
 
 					/* write extra sei */
+					//SEI: 각 picture의 타이밍 정보와 임의 엑세스 정보 등의 부가정보를 포함하는 헤더
 
 					/* generate sei pic timing */
 
@@ -133,7 +144,8 @@ x264_slices_write	static void *x264_slices_write( x264_t *h )
 					h->mb.b_reencode_mb = 0;
 
 //frame 안에 있는 여러개 slices 차례대로 불러들이기 위한 것
-//현재 우리 코딩에서는 한번 밖에 안돌아감...왜???
+//blue-ray 이상의 사이즈에서 사용됨
+//multiple slice는 compression efficiency를 감소시킨다
 					while( h->sh.i_first_mb + SLICE_MBAFF*h->mb.i_mb_stride <= last_thread_mb )
 					{   
 						h->sh.i_last_mb = last_thread_mb;
