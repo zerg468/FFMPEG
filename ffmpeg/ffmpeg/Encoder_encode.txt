@@ -162,4 +162,4 @@ x264_slices_write	static void *x264_slices_write( x264_t *h )
 						if( h->param.b_sliced_threads )
 							x264_threadslice_cond_broadcast( h, 2 );
 						return (void *)-1;
-					} 
+					}  
