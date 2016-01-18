@@ -1,14 +1,14 @@
 libx264				X264_FRAME
 x264/Encoder.c		x264_encoder_encode(x264_t *h, x264_nal_t **pp_nal, int *pi_nal, x264_picture_t *pic_in, x264_picture_t *pic_out )					
 x264_encoder_encode	/* ------------------- Setup new frame from picture -------------------- */
-					//들어온 picture 있음
+
+//들어온 picture 있음
 					if( pic_in != NULL )
 						/* 1: Copy the picture to a frame and move it to a buffer */
 							pic_in => fenc
 							width, height, pts initialization
 							
-							//quant_offset 초기화
-							 x264_stack_align( x264_adaptive_quant_frame, h, fenc, pic_in->prop.quant_offsets )
+//quant_offset 초기화		x264_stack_align( x264_adaptive_quant_frame, h, fenc, pic_in->prop.quant_offsets )
 
 						/* 2: Place the frame into the queue for its slice type decision */
 							x264_lookahead_put_frame( h, fenc );
@@ -87,7 +87,7 @@ x264_encoder_encode	/* ------------------- Setup new frame from picture --------
 					/* Filler space: 10 or 18 SEIs' worth of space, depending on resolution */
 
 					/* Init the rate control */
-					//초기 qpm 설정
+//초기 qpm 설정
 					x264_ratecontrol_start( h, h->fenc->i_qpplus1, overhead*8 );
 					i_global_qp = x264_ratecontrol_qp( h );
 
@@ -101,11 +101,12 @@ x264_encoder_encode	/* ------------------- Setup new frame from picture --------
 
 					x264_weighted_pred_init( h );
 
-					//여기서 x264_slices_write call
-					//x264_slices_write 안에서 다시 slice_write call
+//여기서 x264_slices_write call
+//x264_slices_write 안에서 다시 slice_write call
 					/* Write frame */
 					h->i_threadslice_start = 0;
 					h->i_threadslice_end = h->mb.i_mb_height;
+
 					if( h->i_thread_frames > 1 )
 					{
 						x264_threadpool_run( h->threadpool, (void*)x264_slices_write, h );
@@ -122,6 +123,7 @@ x264_encoder_encode	/* ------------------- Setup new frame from picture --------
 
 					return x264_encoder_frame_end( thread_oldest, thread_current, pp_nal, pi_nal, pic_out );
 
+					//
 x264_slices_write	static void *x264_slices_write( x264_t *h )
 					
 					int i_slice_num = 0;
@@ -130,8 +132,8 @@ x264_slices_write	static void *x264_slices_write( x264_t *h )
 					memset( &h->stat.frame, 0, sizeof(h->stat.frame) );
 					h->mb.b_reencode_mb = 0;
 
-					//frame 안에 있는 여러개 slices 차례대로 불러들이기 위한 것
-					//현재 우리 코딩에서는 한번 밖에 안돌아감...왜???
+//frame 안에 있는 여러개 slices 차례대로 불러들이기 위한 것
+//현재 우리 코딩에서는 한번 밖에 안돌아감...왜???
 					while( h->sh.i_first_mb + SLICE_MBAFF*h->mb.i_mb_stride <= last_thread_mb )
 					{   
 						h->sh.i_last_mb = last_thread_mb;
@@ -145,8 +147,7 @@ x264_slices_write	static void *x264_slices_write( x264_t *h )
 
 						h->sh.i_last_mb = X264_MIN( h->sh.i_last_mb, last_thread_mb );
 
-						//x264_slice_write
-						if( x264_stack_align( x264_slice_write, h ) )
+//x264_slice_write		if( x264_stack_align( x264_slice_write, h ) )
 							//안들어감
 							goto fail;
 
