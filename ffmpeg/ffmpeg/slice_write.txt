@@ -86,7 +86,7 @@ x264/Encoder.c	static intptr_t x264_slice_write( x264_t *h )
 				reencode:
 						x264_macroblock_encode( h );
 
-
+						//CABAC 일때 처리
 						if( h->param.b_cabac )
 						{
 							if( mb_xy > h->sh.i_first_mb && !(SLICE_MBAFF && (i_mb_y&1)) )

@@ -1,8 +1,9 @@
 libx264				X264_FRAME
+					//pic_in->i_type = frame->pic.iype 결정
 x264/Encoder.c		x264_encoder_encode(x264_t *h, x264_nal_t **pp_nal, int *pi_nal, x264_picture_t *pic_in, x264_picture_t *pic_out )					
 x264_encoder_encode	/* ------------------- Setup new frame from picture -------------------- */
 
-//들어온 picture 있음
+					//들어온 picture 있음
 					if( pic_in != NULL )
 						/* 1: Copy the picture to a frame and move it to a buffer */
 							pic_in => fenc
@@ -11,7 +12,7 @@ x264_encoder_encode	/* ------------------- Setup new frame from picture --------
 //quant_offset 초기화		x264_stack_align( x264_adaptive_quant_frame, h, fenc, pic_in->prop.quant_offsets )
 
 						/* 2: Place the frame into the queue for its slice type decision */
-							x264_lookahead_put_frame( h, fenc );
+//frame 넣어서 type 결정		x264_lookahead_put_frame( h, fenc );
 					else //들어온 picture 없을때 처리
 
 					 h->i_frame++;
@@ -98,8 +99,7 @@ x264_encoder_encode	/* ------------------- Setup new frame from picture --------
 					/* Filler space: 10 or 18 SEIs' worth of space, depending on resolution */
 
 					/* Init the rate control */
-//초기 qpm 설정
-					x264_ratecontrol_start( h, h->fenc->i_qpplus1, overhead*8 );
+//초기 qpm 설정		x264_ratecontrol_start( h, h->fenc->i_qpplus1, overhead*8 );
 					i_global_qp = x264_ratecontrol_qp( h );
 
 					/* ------------------------ Create slice header  ----------------------- */

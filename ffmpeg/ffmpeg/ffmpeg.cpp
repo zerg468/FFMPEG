@@ -15,8 +15,8 @@ extern "C"{
 
 int clip_width = 0, clip_height = 0; // resolution size
 int time_base_den = 0, time_base_num = 0;
-char *file_input = "C://sample/akiyo.yuv";
-char *file_out = "C://sample/sample.mp4";
+char *file_input = "C://sample/mobile.yuv";
+char *file_out = "C://sample/mobile__.mp4";
 AVFormatContext    *inFmtCtx = NULL, *ofmt_ctx = NULL;
 AVFrame *pictureEncoded = NULL;
 int frame_num = 1, frame_use = 1;
@@ -90,14 +90,13 @@ int main(void)
 
 			ret = avcodec_decode_video2(inFmtCtx->streams[streamIdx]->codec, pFrame, &frameFinished, &input_pkt);       // Decode video frame (input_pkt-> pFrame)
 
-
 			if (ret < 0)
 			{
 				av_frame_free(&pFrame);
 				av_log(NULL, AV_LOG_ERROR, "Decoding failed\n");
 				break;
 			}
-
+			 
 
 			if (frameFinished){
 
@@ -391,7 +390,6 @@ int open_output_file()
 	return 0;
 }
 
-
 AVStream *add_stream(AVStream *instream, enum AVCodecID codec_id, AVCodec **codecDecode)
 {
 	AVStream *st;
@@ -438,6 +436,7 @@ AVStream *add_stream(AVStream *instream, enum AVCodecID codec_id, AVCodec **code
 
 		ctxDecode->qmin = 20; // qmin=20
 		ctxDecode->qmax = 51; // qmax=51
+		ctxDecode->gop_size = 100;
 
 		//(*ctxEncode)->flags |= CODEC_FLAG_PSNR;
 		ctxDecode->flags |= CODEC_FLAG_LOOP_FILTER; // flags=+loop filter

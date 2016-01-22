@@ -15,21 +15,24 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="slice_write.txt">
-      <Filter>Source Files</Filter>
-    </Text>
-    <Text Include="x264_ratecontrol_start.txt">
-      <Filter>Source Files</Filter>
-    </Text>
-    <Text Include="Encoder_encode.txt">
-      <Filter>Source Files</Filter>
-    </Text>
-    <Text Include="test.txt">
-      <Filter>Source Files</Filter>
-    </Text>
+    <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ffmpeg.cpp">
+    <ClInclude Include="stdafx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="stdafx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="a.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\ffmpeg\old.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -33,7 +33,7 @@ O        q = qscale2qp( rate_estimate_qscale( h ) );
     rc->qp = x264_clip3( q + 0.5f, 0, QP_MAX );
     h->fdec->f_qp_avg_rc =
     h->fdec->f_qp_avg_aq =
-    rc->qpm = q;	//qp=28.4
+O   rc->qpm = q;	//qp=28.4
     if( rce )
         rce->new_qp = rc->qp;
 
